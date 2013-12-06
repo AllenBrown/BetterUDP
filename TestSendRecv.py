@@ -10,10 +10,28 @@ def frange(x, y, jump):
     x += jump
 
 # @Brief - drop a packet if random number is less than percentLoss
+# return - bytes to send, number bytes actually lost in the network
 def SimulateNetLoss(netData, percentLoss):
     if percentLoss > random.random():
-        netData = bytearray()
-    return netData
+        return bytearray(), len(netData)
+    return netData, 0
+
+
+# @Brief - drop packet if any datagram is lost
+# calculate data loss for each 1480 bytes of data. If any of them are dropped,
+# the whole packet is lost.
+# @return - bytes to send, number bytes actually lost in the network
+def SimulateNetIPDatagramLoss(netData, percentLoss):
+    datagramSize = 1480
+    offset = 0
+    bytesLost = 0
+    while offset < len(netData):
+        if percentLoss > random.random():
+            bytesLost += min(len(netData)-offset, datagramSize)
+        offset += datagramSize
+    if bytesLost > 0:
+        return bytearray(), bytesLost
+    return netData, bytesLost
 
 
 # @Brief - simple comparison of input and output data arrays
@@ -23,10 +41,10 @@ def CompareBytearrays(inputData, outputData):
     if len(inputData) != len(outputData):
         return 0
     i = 0
-    while i < len(inputData):
-        if inputData[i] != outputData[i]:
-            return 0
-        i += 1
+    #while i < len(inputData):
+    #    if inputData[i] != outputData[i]:
+    #        return 0
+    #    i += 1
     return 1
 
 
@@ -35,35 +53,45 @@ def CompareBytearrays(inputData, outputData):
 # @param inputData - the input data array that will be sent in it's entirety
 # @param percentLoss - the percent data loss rate betwen 0.0 and 1.0
 # @param blockSize - The size of chunks to be sent to the send function in each call
-# FIXME: add return stats for total bytes sent over the network and % lost
-def testRun(SendRecvInstance, inputData, percentLoss, blockSize):
+# @return - boolean no data lost, ratio of total bytes lost by system, ratio of bytes Lost in Network, ratio of efficiency
+def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc):
     outputData = bytearray()
     offset = 0
+    totalBytesLost = 0
+    totalBytesSent = 0
     while offset < len(inputData):
         sendData = inputData[offset:offset+blockSize]
         offset += blockSize
         netData = SendRecvInstance.send(sendData)
 
         for packet in netData:
-            recvPacket = SimulateNetLoss(packet,percentLoss)
+            totalBytesSent += len(packet)
+            recvPacket, bytesLost = networkLossFunc(packet,percentLoss)
+            totalBytesLost += bytesLost
             recvData = SendRecvInstance.recv(recvPacket)
             outputData.extend(recvData)
 
-    return CompareBytearrays(inputData, outputData)
+    noDataLoss = CompareBytearrays(inputData, outputData)
+    dataPercentLost = (len(inputData) - len(outputData)) / float(len(inputData))
+    networkPercentLost = totalBytesLost / float(len(inputData))
+    efficiency = len(inputData) / float(totalBytesSent)
+
+    return noDataLoss, dataPercentLost, networkPercentLost, efficiency
 
 
 # call from outside. Runs through multiple iterations of the actual test run with
 # variable parameters
-# FIXME: add multiple runs with the same parameters to collect statistics of each run
+# FIXME: Possibly add multiple runs with the same parameters to collect statistics of each run
+# FIXME: Possibly add output of data to a table to create charts
 def TestSendRecvFunc(SendRecvInstance):
     inputData = bytearray (1000000)
     numberTestRuns = 100
     for percentLoss in frange(0.0,0.9,0.1):
         for blockSize in range(100, 65000, 10000):
-            testSuccess = testRun(SendRecvInstance, inputData, percentLoss, blockSize)
-            if testSuccess:
-                print "Succeed in blocksize = " , blockSize , ", with loss of " , percentLoss , "%"
-            else:
-                print "Failed in blocksize = " , blockSize , ", with loss of " , percentLoss , "%"
-
-
+            for x in [0,1]:
+                if x == 0:
+                    testSuccess, dataPercentLost, networkPercentLost, efficiency = testRun(SendRecvInstance, inputData, percentLoss, blockSize, SimulateNetLoss)
+                    print "Jumbo Packet Data good=", testSuccess, ", blocksize=", blockSize, ", efficiency=", efficiency, ", total loss=", dataPercentLost, ", network loss=", networkPercentLost
+                else:
+                    testSuccess, dataPercentLost, networkPercentLost, efficiency = testRun(SendRecvInstance, inputData, percentLoss, blockSize, SimulateNetIPDatagramLoss)
+                    print "Packetized Data good=", testSuccess, ", blocksize=", blockSize, ", efficiency=", efficiency, ", total loss=", dataPercentLost, ", network loss=", networkPercentLost
