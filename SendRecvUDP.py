@@ -5,11 +5,12 @@ from SendRecv import SendRecvObj
 # inherits from the SendRecv class to implement the UDP header. Breaks up each
 # data block into 1460 byte packets
 # FIXME: Add proper header information to allow whole packet loss instead of each fragment
+# the current version only adds space for the header without filling out out any of the fields
 class SendRecvUDP(SendRecvObj):
-    packetDataSize = 1472
+    packetDataSize = 65508 #2^16 - 20 - 8
     packetHeaderSize = 8
 
-    #send will break up packets into 1472 bytes of data + a 4 byte header.
+    #send will break up packets into 65508 bytes of data + a 8 byte header.
     # this leaves 20 bytes for the IP header
     #return - an array of bytearrays that represent packetization of the input data
     def send(self, dataIn):
@@ -18,7 +19,7 @@ class SendRecvUDP(SendRecvObj):
         offset = 0
         while offset < len(dataIn):
             packet = bytearray()
-            header = bytearray (self.packetHeaderSize)
+            header = bytearray(self.packetHeaderSize)
             packet.extend(header)
             packet.extend(dataIn[offset:offset+self.packetDataSize])
             dataOut.append(packet)
