@@ -6,6 +6,7 @@ from TestSendRecv import *
 from SendRecv import SendRecvObj
 from SendRecvUDP import SendRecvUDP
 from SendRecvUDPwithParity import SendRecvUDPwithParity
+from SendRecvRS import SendRecvRS
 
 # unit test class to test send receive functions
 # currently not checking values for returns, this is just a structure that
@@ -31,9 +32,15 @@ class TestSequenceFunctions(unittest.TestCase):
     #    TestSendRecvFunc(testObj)
     #    pass
 
-    def test_udp_parity(self):
-        print 'starting test UDP_with_Parity'
-        testObj = SendRecvUDPwithParity()
+    #def test_udp_parity(self):
+    #    print 'starting test UDP_with_Parity'
+    #    testObj = SendRecvUDPwithParity()
+    #    TestSendRecvFunc(testObj)
+    #    pass
+
+    def test_rs(self):
+        print 'starting test Reed-Solomon encoding'
+        testObj = SendRecvRS()
         TestSendRecvFunc(testObj)
         pass
 
