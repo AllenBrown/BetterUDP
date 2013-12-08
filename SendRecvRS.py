@@ -3,6 +3,7 @@ __author__ = 'William Sims'
 from SendRecv import SendRecvObj
 from net_ecc import EncodePackets
 from net_ecc import DecodePackets
+from net_ecc import ParseHeader
 
 import math
 
@@ -20,12 +21,21 @@ class SendRecvRS(SendRecvObj):
 
         return dataOut
 
+
+    def __init__(self):
+        self.receivedData = []
+
     #recv does not necessary return bytes after each call
     # decodes the packets using Reed-Solomon
     #param dataIn - a bytearray of the bits that come from the network
     #return - a bytearray of the reconstructed bytes
     def recv(self, dataIn):
-        recoveredData = DecodePackets(str(dataIn))
+        self.receivedData.append(str(dataIn))
+        header = ParseHeader(dataIn[:dataIn.find('\n')])
+        n, k = int(header[2]), int(header[4])
+        if len(self.receivedData) >= k:
+            recoveredData = DecodePackets(self.receivedData)
+        else:
+            recoveredData = ''
         return recoveredData
-
 
