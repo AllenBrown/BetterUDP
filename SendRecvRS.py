@@ -25,6 +25,9 @@ class SendRecvRS(SendRecvObj):
     def __init__(self):
         self.receivedData = []
 
+    def clear(self):
+        self.receivedData = []
+
     #recv does not necessary return bytes after each call
     # decodes the packets using Reed-Solomon
     #param dataIn - a bytearray of the bits that come from the network
@@ -33,7 +36,7 @@ class SendRecvRS(SendRecvObj):
         self.receivedData.append(str(dataIn))
         header = ParseHeader(dataIn[:dataIn.find('\n')])
         n, k = int(header[2]), int(header[4])
-        if len(self.receivedData) >= k:
+        if len(self.receivedData) == k:
             recoveredData = DecodePackets(self.receivedData)
         else:
             recoveredData = ''

@@ -70,6 +70,7 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
             totalBytesLost += bytesLost
             recvData = SendRecvInstance.recv(recvPacket)
             outputData.extend(recvData)
+        SendRecvInstance.clear()
 
     noDataLoss = CompareBytearrays(inputData, outputData)
     dataPercentLost = (len(inputData) - len(outputData)) / float(len(inputData))
