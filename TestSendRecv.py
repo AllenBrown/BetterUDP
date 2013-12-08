@@ -85,6 +85,7 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
 # variable parameters
 # FIXME: Possibly add multiple runs with the same parameters to collect statistics of each run
 # FIXME: Possibly add output of data to a table to create charts
+# FIXME: create variable test data to so byte comparison means something
 def TestSendRecvFunc(SendRecvInstance):
     #inputData = bytearray (1000000)
     inputData = bytearray (20000) #APBTEMP

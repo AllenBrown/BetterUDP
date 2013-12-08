@@ -4,12 +4,15 @@ from SendRecv import SendRecvObj
 
 # Inherits from the SendRecv class to implement Better UDP
 class SendRecvUDPwithParity(SendRecvObj):
-    bufferSubheader = []
-    bufferData = []
+
     packetDataSize = 510
     packetSubheaderSize = 2		# Additional Header (1 byte) - Sequence number
 								# Additional Header (1 byte) - end of packets flag
     packetHeaderSize = 8
+
+    def __init__(self):
+        self.bufferData = []
+        self.bufferSubheader = []
 
     # Send will break up packets into 510 bytes of data + a 2 byte sub-header for more reliable UDP + a 8 byte header.
     #return - an array of bytearrays that represent packetization of the input data
@@ -88,9 +91,9 @@ class SendRecvUDPwithParity(SendRecvObj):
 
         offset = 0			# Used to keep track of simulated send
         print "receive length  ", len(dataIn)
-        SendRecvUDPwithParity.bufferData = bytearray()
+
         #SendRecvUDPwithParity.bufferData.append(dataIn[self.packetHeaderSize + self.packetSubheaderSize:self.packetHeaderSize + self.packetSubheaderSize + self.packetDataSize])
-        return dataIn[self.packetHeaderSize + self.packetSubheaderSize:]
+        #return dataIn[self.packetHeaderSize + self.packetSubheaderSize:]
         #return SendRecvUDPwithParity.bufferData[offset:]
 
         # Keep receiving until all commanded data has been received (simulated receive)
@@ -100,14 +103,14 @@ class SendRecvUDPwithParity(SendRecvObj):
             offset += self.packetHeaderSize
 
             # Pull UDP header from packet and increment offset
-            bufferSubheader.append(dataIn[offset:offset+self.packetSubheaderSize])
+            self.bufferSubheader.append(dataIn[offset:offset+self.packetSubheaderSize])
             offset += self.packetSubheaderSize
 
             # Append packet from dataIn to dataOut; simulating receiving a packet from the network
             dataOut.append(dataIn[offset:offset+self.packetDataSize])
 
             # Store data for future parity packet
-            bufferData.append(dataIn[offset:offset+self.packetDataSize])
+            self.bufferData.append(dataIn[offset:offset+self.packetDataSize])
 
             # Increment offset by packetDataSize (510)
             offset += self.packetDataSize
