@@ -83,8 +83,8 @@ def EncodePackets(data, n, k):
         packetList.append(header + `i` + '\n')
 
     if (k == 1): # just doing repetition coding
-        for packet in packetList:
-            packet += data
+        for packet in range(len(packetList)):
+            packetList[packet] += data
     else: # do the full blown RS encodding
         for i in range(0, (inSize/k)*k,k):
             ReadEncodeAndWriteBlock(k, data[i:i+k], packetList, code)
