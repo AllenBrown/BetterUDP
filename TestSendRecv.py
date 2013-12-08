@@ -38,8 +38,6 @@ def SimulateNetIPDatagramLoss(netData, percentLoss):
 # detects size differences and byte differences
 # @return - 1 if the same, 0 if different
 def CompareBytearrays(inputData, outputData):
-    print "input  ", len(inputData) #APBTEMP
-    print "output ", len(outputData) #APBTEMP
     if len(inputData) != len(outputData):
         return 0
     i = 0
@@ -87,12 +85,10 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
 # FIXME: Possibly add output of data to a table to create charts
 # FIXME: create variable test data to so byte comparison means something
 def TestSendRecvFunc(SendRecvInstance):
-    #inputData = bytearray (1000000)
-    inputData = bytearray (20000) #APBTEMP
+    inputData = bytearray (1000000)
     numberTestRuns = 100
     for percentLoss in frange(0.0,0.9,0.1):
-        #for blockSize in range(100, 65000, 10000):
-        for blockSize in range(5000, 20000, 5000): #APBTEMP
+        for blockSize in range(100, 65000, 10000):
             for x in [0,1]:
                 if x == 0:
                     testSuccess, dataPercentLost, networkPercentLost, efficiency = testRun(SendRecvInstance, inputData, percentLoss, blockSize, SimulateNetLoss)

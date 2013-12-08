@@ -18,25 +18,25 @@ class TestSequenceFunctions(unittest.TestCase):
     def tearDown(self):
         print 'tearing down'
 
-    #def test_basic(self):
-    #    print 'starting test basic'
-    #    testObj = SendRecvObj()
-    #    #self.assertTrue(TestSendRecvFunc(testObj),"Failed first test")
-    #    TestSendRecvFunc(testObj)
-    #    pass
+    def test_basic(self):
+        print 'starting test basic'
+        testObj = SendRecvObj()
+        #self.assertTrue(TestSendRecvFunc(testObj),"Failed first test")
+        TestSendRecvFunc(testObj)
+        pass
 
-    #def test_udp(self):
-    #    print 'starting test UDP'
-    #    testObj = SendRecvUDP()
-    #    #self.assertTrue(TestSendRecvFunc(testObj),"Failed first test")
-    #    TestSendRecvFunc(testObj)
-    #    pass
+    def test_udp(self):
+        print 'starting test UDP'
+        testObj = SendRecvUDP()
+        #self.assertTrue(TestSendRecvFunc(testObj),"Failed first test")
+        TestSendRecvFunc(testObj)
+        pass
 
-    #def test_udp_parity(self):
-    #    print 'starting test UDP_with_Parity'
-    #    testObj = SendRecvUDPwithParity()
-    #    TestSendRecvFunc(testObj)
-    #    pass
+    def test_udp_parity(self):
+        print 'starting test UDP_with_Parity'
+        testObj = SendRecvUDPwithParity()
+        TestSendRecvFunc(testObj)
+        pass
 
     def test_rs(self):
         print 'starting test Reed-Solomon encoding'
