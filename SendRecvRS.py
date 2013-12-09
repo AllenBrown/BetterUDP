@@ -35,9 +35,18 @@ class SendRecvRS(SendRecvObj):
     def recv(self, dataIn):
         if len(dataIn) == 0:
             return ''
-        self.receivedData.append(str(dataIn))
         header = ParseHeader(dataIn[:dataIn.find('\n')])
-        n, k = int(header[2]), int(header[4])
+        n, k, seq = int(header[2]), int(header[4]), int(header[8])
+
+        # If we have a different seq number, clear out the old messages
+        if len(self.receivedData) > 0:
+            lastpacket = self.receivedData[-1]
+            oldheader = ParseHeader(lastpacket[:lastpacket.find('\n')])
+            oldseq = int(oldheader[8])
+            if seq != oldseq:
+                self.clear()
+
+        self.receivedData.append(str(dataIn))
         if len(self.receivedData) == k:
             recoveredData = DecodePackets(self.receivedData)
         else:
