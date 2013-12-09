@@ -33,6 +33,8 @@ class SendRecvRS(SendRecvObj):
     #param dataIn - a bytearray of the bits that come from the network
     #return - a bytearray of the reconstructed bytes
     def recv(self, dataIn):
+        if len(dataIn) == 0:
+            return ''
         self.receivedData.append(str(dataIn))
         header = ParseHeader(dataIn[:dataIn.find('\n')])
         n, k = int(header[2]), int(header[4])
