@@ -40,13 +40,14 @@ True
 from rs_code import RSCode
 from array import array
 
+from random import randint
 import os, struct, string
 
 headerSep = '|'
 
-def MakeHeader(n,k,size):
+def MakeHeader(n,k,size,seq):
     return string.join(['RS_PARITY_PIECE_HEADER',
-                        'n',`n`,'k',`k`,'size',`size`,'piece'],
+                        'n',`n`,'k',`k`,'size',`size`,'seq',`seq`,'piece'],
                        headerSep) + headerSep
 
 def ParseHeader(header):
@@ -77,7 +78,7 @@ def EncodePackets(data, n, k):
     if (n > 256 or k >= n or k <= 0):
         raise Exception, 'Invalid (n,k), need 0 < k < n < 257.'
     inSize = len(data)
-    header = MakeHeader(n,k,inSize)
+    header = MakeHeader(n,k,inSize,randint(0,999))
     code = RSCode(n,k,8,shouldUseLUT=-(k!=1))
     for i in range(n):
         packetList.append(header + `i` + '\n')
@@ -102,9 +103,9 @@ def ExtractPieceNums(headers):
     for i in range(len(headers)):
         if (l[i][0] != 'RS_PARITY_PIECE_HEADER' or
             l[i][2] != l[0][2] or l[i][4] != l[0][4] or
-            l[i][6] != l[0][6]):
+            l[i][6] != l[0][6] or l[i][8] != l[0][8]):
             raise Exception, 'Packet ' + `i` + ' has incorrect header.'
-        pieceNums[i] = int(l[i][8])
+        pieceNums[i] = int(l[i][10])
     (n,k,size) = (int(l[0][2]),int(l[0][4]),long(l[0][6]))
     if (len(pieceNums) < k):
         raise Exception, ('Not enough parity for decoding; needed '
