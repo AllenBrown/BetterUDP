@@ -86,10 +86,10 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
 # FIXME: Possibly add output of data to a table to create charts
 # FIXME: create variable test data to so byte comparison means something
 def TestSendRecvFunc(SendRecvInstance):
-    inputData = bytearray (1000000)
+    inputData = bytearray (100000)
     numberTestRuns = 100
-    for percentLoss in frange(0.0,0.9,0.1):
-        for blockSize in range(100, 65000, 10000):
+    for percentLoss in frange(0.0,0.1,0.01):
+        for blockSize in range(10100, 65000, 10000):
             for x in [0,1]:
                 if x == 0:
                     testSuccess, dataPercentLost, networkPercentLost, efficiency = testRun(SendRecvInstance, inputData, percentLoss, blockSize, SimulateNetLoss)
