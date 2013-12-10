@@ -78,7 +78,7 @@ def EncodePackets(data, n, k):
     if (n > 256 or k >= n or k <= 0):
         raise Exception, 'Invalid (n,k), need 0 < k < n < 257.'
     inSize = len(data)
-    header = MakeHeader(n,k,inSize,randint(0,999))
+    header = MakeHeader(n,k,inSize,randint(0,99999))
     code = RSCode(n,k,8,shouldUseLUT=-(k!=1))
     for i in range(n):
         packetList.append(header + `i` + '\n')
