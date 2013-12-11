@@ -104,7 +104,7 @@ class SendRecvUDPwithParity(SendRecvObj):
                 fullSizePacket = bytearray(self.packetDataSize)
                 
                 # Copy the contents into the fullSizepacket
-                for index in range(0, packetSize - 1):
+                for index in range(0, packetSize):
                     fullSizePacket[index] = dataIn[offset + index]
                 
                 # Set sequencer number and append sub-header to packet
