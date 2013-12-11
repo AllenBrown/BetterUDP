@@ -5,7 +5,6 @@ from SendRecv import SendRecvObj
 # Inherits from the SendRecv class to implement Better UDP
 class SendRecvUDPwithParity(SendRecvObj):
 
-    packetDataSize = 508
     packetSubheaderSize = 4		# Additional Header (1 byte) - Sequence number (count up from 1), parity packet (0)
 								# Additional Header (1 byte) - end of packets flag (2), parity packet (1)
                                 # Additional Header (2 byte) - packet size
@@ -23,6 +22,7 @@ class SendRecvUDPwithParity(SendRecvObj):
         self.packetSize = 0
         self.sendPacketNum = 0
         self.recvPacketNum = 0
+        self.packetDataSize = 508
 
     def clear(self):
         self.resetReceiveCount = 0
@@ -35,6 +35,7 @@ class SendRecvUDPwithParity(SendRecvObj):
     # Send will break up packets into 508 bytes of data + a 4 byte sub-header for more reliable UDP + a 8 byte header.
     #return - an array of bytearrays that represent packetization of the input data
     def send(self, dataIn):
+        self.packetDataSize = len(dataIn)/10
         dataOut = []
         buffer = bytearray()
 
