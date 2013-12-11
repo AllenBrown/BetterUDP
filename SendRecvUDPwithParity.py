@@ -109,11 +109,11 @@ class SendRecvUDPwithParity(SendRecvObj):
                 
                 # Set sequencer number and append sub-header to packet
                 if packetSize > 255:
-                    subheader[2] = 255
-                    subheader[3] = packetSize - 255
+                    subheader[2] = packetSize / 256
+                    subheader[3] = packetSize % 256
                 else:
-                    subheader[2] = packetSize
-                    subheader[3] = 0
+                    subheader[2] = 0
+                    subheader[3] = packetSize
                 packet.extend(subheader)
                 
                 # Append data to packet
@@ -127,8 +127,8 @@ class SendRecvUDPwithParity(SendRecvObj):
                 packet[2] = packetSize % 256
 
                 # Set sequencer number and append sub-header to packet
-                subheader[2] = 255
-                subheader[3] = packetSize - 255
+                subheader[2] = packetSize / 256
+                subheader[3] = packetSize % 256
                 packet.extend(subheader)
             
                 # Append data to packet
@@ -155,11 +155,11 @@ class SendRecvUDPwithParity(SendRecvObj):
                 parityPacket[self.packetHeaderSize] = paritySequence
                 parityPacket[self.packetHeaderSize + 1] = 1 # Set 1 for parity packet flag
                 if packetSize > 255:
-                    parityPacket[self.packetHeaderSize + 2] = 255
-                    parityPacket[self.packetHeaderSize + 3] = packetSize - 255 # Provide size of last packet
+                    parityPacket[self.packetHeaderSize + 2] = packetSize / 256
+                    parityPacket[self.packetHeaderSize + 3] = packetSize % 256 # Provide size of last packet
                 else:
-                    parityPacket[self.packetHeaderSize + 2] = packetSize
-                    parityPacket[self.packetHeaderSize + 3] = 0
+                    parityPacket[self.packetHeaderSize + 2] = 0
+                    parityPacket[self.packetHeaderSize + 3] = packetSize
                 
                 # Loop through all bytes and set parity
                 for index in range(0,self.packetDataSize - 1):
@@ -268,7 +268,7 @@ class SendRecvUDPwithParity(SendRecvObj):
             # Pull UDP header from packet and increment offset
             sequenceNumber = dataIn[offset]
             self.subheaderTypeFlag = dataIn[offset + 1]
-            self.packetSize = dataIn[offset + 2] + dataIn[offset + 3]
+            self.packetSize = dataIn[offset + 2]*256 + dataIn[offset + 3]
             #DEBUG print "end of packet/parity flag ", self.subheaderTypeFlag, " sequence ", sequenceNumber, " packet size ", self.packetSize, " lost count ", self.lostPacketCount
             
             # If we are resetting the receive count, then empty our static arrays
