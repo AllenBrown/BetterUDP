@@ -68,8 +68,9 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
             totalBytesSent += len(packet)
             recvPacket, bytesLost = networkLossFunc(packet,percentLoss)
             totalBytesLost += bytesLost
-            recvData = SendRecvInstance.recv(recvPacket)
-            outputData.extend(recvData)
+            if bytesLost == 0:
+                recvData = SendRecvInstance.recv(recvPacket)
+                outputData.extend(recvData)
 
     noDataLoss = CompareBytearrays(inputData, outputData)
     
@@ -98,9 +99,9 @@ def TestSendRecvFunc(SendRecvInstance):
     for index in range (0,len(inputData)):
         inputData[index] = 1
     numberTestRuns = 100
-    for percentLoss in frange(0.0,0.1,0.01):
-        for blockSize in range(10100, 65000, 10000):
-            for x in [0,1]:
+    for x in [1]:
+        for percentLoss in frange(0.0,0.11,0.01):
+            for blockSize in [1400]:
                 if x == 0:
                     testSuccess, dataPercentLost, networkPercentLost, efficiency = testRun(SendRecvInstance, inputData, percentLoss, blockSize, SimulateNetLoss)
                     print "Jumbo Packet Data good=", testSuccess, ", blocksize=", blockSize, ", efficiency=", efficiency, ", total loss=", dataPercentLost, ", network loss=", networkPercentLost

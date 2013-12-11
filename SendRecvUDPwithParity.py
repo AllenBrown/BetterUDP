@@ -21,6 +21,16 @@ class SendRecvUDPwithParity(SendRecvObj):
         self.lostPacketCount = 0
         self.subheaderTypeFlag = 0
         self.packetSize = 0
+        self.sendPacketNum = 0
+        self.recvPacketNum = 0
+
+    def clear(self):
+        self.resetReceiveCount = 0
+        self.receiveBufferData = []
+        self.bufferSubheader = []
+        self.lostPacketCount = 0
+        self.sequenceReceive = 0
+        self.subheaderTypeFlag = 0
 
     # Send will break up packets into 508 bytes of data + a 4 byte sub-header for more reliable UDP + a 8 byte header.
     #return - an array of bytearrays that represent packetization of the input data
@@ -31,13 +41,14 @@ class SendRecvUDPwithParity(SendRecvObj):
         offset = 0            # Used to keep track of simulated send
         self.sequenceSend = 0 # Used to keep track of entire sequence
         paritySequence = 0    # Used to keep track of parity sequence
-
+        self.sendPacketNum += 1
         #DEBUG print "send length  ", len(dataIn)
 
         # For small packets, just send them out
         if len(dataIn) < (self.packetDataSize):
             packet = bytearray()
             header = bytearray(self.packetHeaderSize)
+            header[0] = self.sendPacketNum % 256
             packet.extend(header)
             packet.extend(dataIn[0:len(dataIn)])
             dataOut.append(packet)
@@ -58,6 +69,7 @@ class SendRecvUDPwithParity(SendRecvObj):
 
             # Allocate memory for UDP header and append header to packet
             header = bytearray(self.packetHeaderSize)
+            header[0] = self.sendPacketNum % 256
             packet.extend(header)
 
             # Allocate memory to UDP sub-header for more reliable UDP
@@ -87,6 +99,8 @@ class SendRecvUDPwithParity(SendRecvObj):
             # Check if last packet in block is less than max size
             if (len(dataIn) - offset) < self.packetDataSize:
                 packetSize = len(dataIn) - offset
+                packet[1] = packetSize / 256
+                packet[2] = packetSize % 256
                 fullSizePacket = bytearray(self.packetDataSize)
                 
                 # Copy the contents into the fullSizepacket
@@ -109,7 +123,9 @@ class SendRecvUDPwithParity(SendRecvObj):
                 buffer.extend(fullSizePacket[0:self.packetDataSize])
             else:
                 packetSize = self.packetDataSize
-                
+                packet[1] = packetSize / 256
+                packet[2] = packetSize % 256
+
                 # Set sequencer number and append sub-header to packet
                 subheader[2] = 255
                 subheader[3] = packetSize - 255
@@ -132,7 +148,9 @@ class SendRecvUDPwithParity(SendRecvObj):
 #DEBUG                print "buffer length  ", len(buffer)
                 # Allocate memory and send a parity packet based on all 10 packets
                 parityPacket = bytearray(self.packetHeaderSize + self.packetSubheaderSize + self.packetDataSize)
-            
+                parityPacket[0] = self.sendPacketNum % 256
+                parityPacket[1] = len(dataIn) / 256
+                parityPacket[2] = len(dataIn) % 256
                 # Set sub-header in parity packet
                 parityPacket[self.packetHeaderSize] = paritySequence
                 parityPacket[self.packetHeaderSize + 1] = 1 # Set 1 for parity packet flag
@@ -202,7 +220,12 @@ class SendRecvUDPwithParity(SendRecvObj):
     #return - a bytearray of the reconstructed bytes
     def recv(self, dataIn):
         empty = []
-        header = bytearray(self.packetHeaderSize)
+
+        #cheat and use the first byte of the header as a packet number.
+        #that way we can test for a new packet and clear variables accordingly
+        #if (self.recvPacketNum != dataIn[0]):
+        #    self.recvPacketNum = dataIn[0]
+        #    self.clear()
 
         offset = 0			# Used to keep track of simulated send
         #DEBUG print "receive length  ", len(dataIn)
@@ -213,13 +236,8 @@ class SendRecvUDPwithParity(SendRecvObj):
             if len(dataIn) == 0 and self.subheaderTypeFlag <> 2:
                 # If we are resetting the receive count, then empty our static arrays
                 if self.subheaderTypeFlag == 1:
-                    self.resetReceiveCount = 0
-                    self.receiveBufferData = []
-                    self.bufferSubheader = []
-                    self.lostPacketCount = 0
-                    self.sequenceReceive = 0
-                    self.subheaderTypeFlag = 0
-                    
+                    self.clear()
+
                 # Store blanks in case parity packet might recover in the future
                 self.receiveBufferData.extend(bytearray(self.packetDataSize))
                 self.bufferSubheader.extend(bytearray(self.packetSubheaderSize))
@@ -233,13 +251,8 @@ class SendRecvUDPwithParity(SendRecvObj):
                 dataOut.extend(self.receiveBufferData[0:len(self.receiveBufferData)])
                 
                 # Reset static data
-                self.resetReceiveCount = 0
-                self.receiveBufferData = []
-                self.bufferSubheader = []
-                self.lostPacketCount = 0
-                self.sequenceReceive = 0
-                self.subheaderTypeFlag = 0
-                
+                self.clear()
+
                 # Return current receiveBufferData, we can't fix anything since we lost parity packet
                 #DEBUG print "dataOut length ", len(dataOut)
                 return dataOut[0:self.sequenceReceive]
@@ -282,8 +295,9 @@ class SendRecvUDPwithParity(SendRecvObj):
                 if self.resetReceiveCount == 1:
                     self.resetReceiveCount = 0
 
+                thisPacketSize = header[1] * 256 + header[2]
                 # Increment the receive sequence
-                self.sequenceReceive += self.packetSize
+                self.sequenceReceive += thisPacketSize
 
             # Else If we received a parity packet and 1 packet was lost associated with parity packet
             elif self.subheaderTypeFlag == 1 and self.lostPacketCount == 1:
@@ -328,7 +342,7 @@ class SendRecvUDPwithParity(SendRecvObj):
             else:
                 # Reset flag
                 self.resetReceiveCount = 1
-                
+
             #DEBUG print "self.sequenceReceive ", self.sequenceReceive, " dataIn length ", len(self.receiveBufferData), " subheader length ", len(self.bufferSubheader)
             if self.subheaderTypeFlag == 1:
                 return self.receiveBufferData[0:self.sequenceReceive]
