@@ -72,7 +72,16 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
             outputData.extend(recvData)
 
     noDataLoss = CompareBytearrays(inputData, outputData)
-    dataPercentLost = (len(inputData) - len(outputData)) / float(len(inputData))
+    
+    comparisonCount = 0
+    maxIndex = len(inputData)
+    if maxIndex > len(outputData):
+        maxIndex = len(outputData)
+    for index in range (0,maxIndex):
+        if inputData[index] == outputData[index]:
+            comparisonCount += 1
+    #dataPercentLost = (len(inputData) - len(outputData)) / float(len(inputData))
+    dataPercentLost = (len(inputData) - comparisonCount) / float(len(inputData))
     networkPercentLost = totalBytesLost / float(len(inputData))
     efficiency = len(inputData) / float(totalBytesSent)
 
@@ -86,6 +95,8 @@ def testRun(SendRecvInstance, inputData, percentLoss, blockSize, networkLossFunc
 # FIXME: create variable test data to so byte comparison means something
 def TestSendRecvFunc(SendRecvInstance):
     inputData = bytearray (100000)
+    for index in range (0,len(inputData)):
+        inputData[index] = 1
     numberTestRuns = 100
     for percentLoss in frange(0.0,0.1,0.01):
         for blockSize in range(10100, 65000, 10000):
